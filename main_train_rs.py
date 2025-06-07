@@ -84,12 +84,6 @@ def main():
     val_size = len(dataset) - train_size
     train_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size])
 
-    dataset = BedTopoDataset(inputs, target_bed, radar_mask_tensor, patch_size=16, stride=8)
-    train_size = int(len(dataset) * 0.8)
-    val_size = len(dataset) - train_size
-    train_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size])
-
-    # DataLoader for training and validation
     train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=16, shuffle=False)
 
@@ -101,10 +95,9 @@ def main():
     loss_balancer = LossBalancer().to(device)
 
     for epoch in range(num_epochs):
-        # Training phase
+        
         model.train()
-        train_loss = 0.0
-        # for input_patch, target_patch, radar_mask_patch, _ in train_loader: ### for horizontal slicing
+        train_loss = 0.0       
         for input_patch, target_patch, radar_mask_patch in train_loader:
             input_patch = input_patch.to(device)
             target_patch = target_patch.flatten(start_dim=1).to(device)
@@ -114,11 +107,8 @@ def main():
             patch_size = input_patch.shape[2]
             edge_index = grid_to_graph(patch_size, patch_size).to(device)
 
-            optimizer.zero_grad()
-
-            # Compute radar confidence for the patch
+            optimizer.zero_grad()            
             patch_radar_confidence = radar_confidence_tensor[:graph_inputs.size(0)]
-
             loss = bayesian_uncertainty_loss(
                 model, graph_inputs, edge_index, target_patch.flatten(), 
                 radar_mask_patch.to(device), patch_radar_confidence, 
@@ -132,20 +122,17 @@ def main():
         train_loss /= len(train_loader)
         print(f"Epoch [{epoch + 1}/{num_epochs}], Training Loss: {train_loss:.4f}")
 
-        # Validation phase
-        model.eval()  # Disable dropout for standard validation predictions
+        
+        model.eval()  
         val_loss = 0.0
-        with torch.no_grad():
-            # for input_patch, target_patch, radar_mask_patch, _ in val_loader: ### for horizontal slicing
+        with torch.no_grad():            
             for input_patch, target_patch, radar_mask_patch in train_loader:
                 input_patch = input_patch.to(device)
                 target_patch = target_patch.flatten(start_dim=1).to(device)
 
-                # Reshape input_patch for GAT
+                
                 graph_inputs = input_patch.permute(0, 2, 3, 1).reshape(-1, input_patch.shape[1])
-                outputs = model(graph_inputs, edge_index.to(device)).squeeze()
-
-                # Compute radar confidence for the patch
+                outputs = model(graph_inputs, edge_index.to(device)).squeeze()                
                 patch_radar_confidence = radar_confidence_tensor[:graph_inputs.size(0)]
 
                 loss = bayesian_uncertainty_loss(
@@ -158,8 +145,7 @@ def main():
 
         val_loss /= len(val_loader)
         print(f"Validation Loss: {val_loss:.4f}")
-
-        # Early stopping and model saving
+        
         if val_loss < best_loss:
             print(f"Validation loss improved from {best_loss:.4f} to {val_loss:.4f}. Saving model...")
             best_loss = val_loss
