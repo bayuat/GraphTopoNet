@@ -24,11 +24,9 @@ This repository provides a PyTorch-based implementation of **GraphTopoNet**, a g
     ```bash
     python main_train_rs.py
     ```
-    ```
 4. Train the model using spatial slicing:
     ```bash
     python main_train_slicing.py
-    ```
     ```
 Model checkpoints will be saved in `./saved_models/`.
 
