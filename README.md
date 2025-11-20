@@ -1,6 +1,16 @@
 # GraphTopoNet: Graph Learning-Based Bed Topography Estimation with Uncertainty-Aware
 
+<p align="center">
+  <img src="sample_images/architecture.png" alt="Architecture" width="900">
+</p>
+
 This repository provides a PyTorch-based implementation of **GraphTopoNet**, a graph convolutional network designed for subglacial bed topography prediction using surface-derived features. The model leverages radar data (`data_full.csv`), BedMachine-derived priors (`bed_BedMachine.h5`), and hybrid loss terms to improve bed elevation reconstruction in regions with sparse observational data.
+
+<p align="center">
+  <img src="sample_images/radar_and_bedmachine_data.png" alt="Radar and Bedmachine data" width="400">
+</p>
+
+
 
 ## 🔧 Input Features
 
